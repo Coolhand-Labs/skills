@@ -7,7 +7,7 @@ description: |
   /feedback-collection. Also use when the user mentions Coolhand,
   COOLHAND_API_KEY, coolhand-js, coolhand-node, coolhand-python, or coolhand-ruby.
 user_invocable: true
-version: 0.2.2
+version: 0.2.3
 shared_common: true
 ---
 
@@ -120,7 +120,7 @@ Design for the highest signal achievable, in priority order:
 #### Fields the skill does not use
 
 - `coolhand_fingerprint_id` — set automatically by the coolhand-js widget for cross-session correlation. Do not populate this from server-side code; the widget owns it.
-- `workload_hashid` — workload grouping. Out of scope (see [issue #4](https://github.com/Coolhand-Labs/feedback-collection-skill/issues/4)). Use `client_unique_id` to convey grouping intent.
+- `workload_hashid` — workload grouping. Out of scope (see [issue #4](https://github.com/Coolhand-Labs/skills/issues/4)). Use `client_unique_id` to convey grouping intent.
 
 #### creator_unique_id (CRITICAL — must be consistent)
 
@@ -284,7 +284,7 @@ Dispatch based on the answer:
 - **"managed" / "Coolhand" / "default"** → invoke the `coolhand-integration` skill.
 - **"self-hosted" / "self-host" / "own backend"** → invoke the `self-hosted-feedback` skill.
   - If Phase 2 found no DB and the user picks self-host, push back: explain that without a DB they have nowhere to store the data, and recommend starting on managed Coolhand with the option to migrate later.
-  - **Honest caveat to share with the user:** the v2 API does not yet expose export endpoints (see [issue #5](https://github.com/Coolhand-Labs/feedback-collection-skill/issues/5)), so today "migrate later" means starting fresh in self-host with no historical data carried over. The user should know this before deciding.
+  - **Honest caveat to share with the user:** the v2 API does not yet expose export endpoints (see [issue #5](https://github.com/Coolhand-Labs/skills/issues/5)), so today "migrate later" means starting fresh in self-host with no historical data carried over. The user should know this before deciding.
 - **"both" or unclear** → ask the user to pick one for v0.1; the other can be wired up later.
 
 Each implementation skill picks up the proposal context and the strategy.
@@ -312,5 +312,5 @@ If the user reports a bug, unexpected behavior, or limitation with any Coolhand 
    - coolhand-node: https://github.com/Coolhand-Labs/coolhand-node/issues/new
    - coolhand-python: https://github.com/Coolhand-Labs/coolhand-python/issues/new
    - coolhand-ruby: https://github.com/Coolhand-Labs/coolhand-ruby/issues/new
-   - This skill: https://github.com/Coolhand-Labs/feedback-collection-skill/issues/new
+   - This skill: https://github.com/Coolhand-Labs/skills/issues/new
 5. Do not submit the issue yourself — show the draft and link, let the user file it.

@@ -7,7 +7,7 @@ description: |
   the user picks "self-hosted" / "self-host" / "own backend." Also use when
   the user says "I want to host this myself," "no third-party," "data
   residency," or asks how to point Coolhand SDKs at a custom endpoint.
-version: 0.2.1
+version: 0.2.2
 shared_common: true
 ---
 
@@ -117,7 +117,7 @@ The skill ships a snapshot of the Coolhand v2 OpenAPI spec at `references/coolha
 
 **3. If the user says no, OR you have no fetch-capable tool available in this environment:** continue to Phase B with the local snapshot. Tell the user:
 
-> "Using the bundled snapshot from {snapshot_taken_at}. To get a refreshed snapshot, open an issue at https://github.com/Coolhand-Labs/feedback-collection-skill/issues — or, if you're working from a fork, run `bin/refresh-openapi-snapshot` from the repo root."
+> "Using the bundled snapshot from {snapshot_taken_at}. To get a refreshed snapshot, open an issue at https://github.com/Coolhand-Labs/skills/issues — or, if you're working from a fork, run `bin/refresh-openapi-snapshot` from the repo root."
 
 **4. If the user says yes**, attempt the freshness check using whatever tool you have available — `WebFetch`, Bash + `curl`, an MCP fetcher, anything that can retrieve a URL. The skill is intentionally not proscriptive about how; pick what works.
 
@@ -133,7 +133,7 @@ The skill ships a snapshot of the Coolhand v2 OpenAPI spec at `references/coolha
 
   d. **Report**:
      - **No structural differences** → "Spec is current."
-     - **Drift detected** → list the specific changes (e.g., "endpoint `/api/v2/exports` is new upstream", "the `like` field has been removed from `create_llm_request_log_feedback_params`"). Offer to draft an issue at https://github.com/Coolhand-Labs/feedback-collection-skill/issues/new asking maintainers to refresh the snapshot. Continue to Phase B with the bundled snapshot for this session — deterministic scaffolding takes priority over freshness when they conflict.
+     - **Drift detected** → list the specific changes (e.g., "endpoint `/api/v2/exports` is new upstream", "the `like` field has been removed from `create_llm_request_log_feedback_params`"). Offer to draft an issue at https://github.com/Coolhand-Labs/skills/issues/new asking maintainers to refresh the snapshot. Continue to Phase B with the bundled snapshot for this session — deterministic scaffolding takes priority over freshness when they conflict.
      - **Couldn't fetch / couldn't extract** → tell the user "Couldn't verify upstream right now. The bundled snapshot is from {snapshot_taken_at}." Continue to Phase B.
 
 **Do not block self-hosted setup on freshness check failures.** The check is informational. The snapshot is the contract for scaffolding either way.
@@ -151,7 +151,7 @@ The planner's Phase 2 already detected the user's DB/ORM. Re-confirm here:
 
 > "You don't have a database in this project, and self-hosted feedback needs somewhere to store the data. Recommend starting on managed Coolhand for now — when you add a DB, you can move to self-hosted then.
 >
-> Caveat: the Coolhand v2 API does not yet expose export endpoints (see https://github.com/Coolhand-Labs/feedback-collection-skill/issues/5), so today 'migrate later' means starting fresh self-hosted with no historical data. If you'd rather wait until export ships, fine — let me know."
+> Caveat: the Coolhand v2 API does not yet expose export endpoints (see https://github.com/Coolhand-Labs/skills/issues/5), so today 'migrate later' means starting fresh self-hosted with no historical data. If you'd rather wait until export ships, fine — let me know."
 
 If the user does have a DB but it isn't on the list above, ask which migration tooling they use, then proceed.
 
@@ -193,7 +193,7 @@ created_at               timestamp
 updated_at               timestamp
 ```
 
-The remaining deferred fields (`workload_hashid`, `coolhand_fingerprint_id`) are intentionally not in this schema — see [issue #4](https://github.com/Coolhand-Labs/feedback-collection-skill/issues/4). For chain-deletion and offset-staleness semantics, see `references/chained-partial-feedback.md`.
+The remaining deferred fields (`workload_hashid`, `coolhand_fingerprint_id`) are intentionally not in this schema — see [issue #4](https://github.com/Coolhand-Labs/skills/issues/4). For chain-deletion and offset-staleness semantics, see `references/chained-partial-feedback.md`.
 
 Generate the migration in the user's ORM syntax. Use `references/api-spec.md` to verify field types when in doubt.
 

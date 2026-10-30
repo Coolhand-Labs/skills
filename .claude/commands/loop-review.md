@@ -38,7 +38,7 @@ These are exact, not judgment calls — treat every failing line as a finding, s
 Spawn an Agent using the Agent tool with `thinking: "high"` enabled and this prompt (substitute ITERATION_NUM, EFFORT, and PREVIOUS_FIXES):
 
 ---
-You are a code reviewer doing pass ITERATION_NUM of an automated review loop on the `feedback-collection-skill` plugin repo.
+You are a code reviewer doing pass ITERATION_NUM of an automated review loop on the `coolhand` skills repo (`Coolhand-Labs/skills`).
 
 Run `git diff origin/main...HEAD` to get the current branch diff, and read `AGENTS.md` for this repo's conventions before judging anything. Review the diff for:
 
@@ -104,13 +104,13 @@ Disposition:
 
 ## CSV Run Log
 
-After the loop exits (deterministic checks pass and review is clean, or max iterations reached), append one row per iteration to `~/loop-review-outputs/feedback-collection-skill.csv`. Create the directory and file with this header if it doesn't already exist:
+After the loop exits (deterministic checks pass and review is clean, or max iterations reached), append one row per iteration to `~/loop-review-outputs/coolhand-skills.csv`. Create the directory and file with this header if it doesn't already exist:
 
 ```
 timestamp,branch,iteration,model,thinking_level,clock_seconds,tokens_used_approx,critical_found,nice_to_have_found,nitpick_found,total_found,issues_addressed,issues_ignored
 ```
 
-For each iteration, append a row via plain `cat >> ~/loop-review-outputs/feedback-collection-skill.csv <<EOF ... EOF` (no CSV quoting needed):
+For each iteration, append a row via plain `cat >> ~/loop-review-outputs/coolhand-skills.csv <<EOF ... EOF` (no CSV quoting needed):
 - `timestamp` — `date -u +%Y-%m-%dT%H:%M:%SZ` at write time
 - `branch` — `git branch --show-current`
 - `iteration` — the iteration number
@@ -129,5 +129,5 @@ After the loop exits, output:
 2. **Per-iteration breakdown**: What was found (deterministic + reviewer, with severity breakdown) vs. what was fixed and what was rejected (with reasons) each round
 3. **All files modified**: Complete list of files touched across all iterations
 4. **Remaining issues** (if stopped at max): Unresolved items with context on why they're hard to fix automatically
-5. **CSV log**: Number of rows appended and the path (`~/loop-review-outputs/feedback-collection-skill.csv`)
+5. **CSV log**: Number of rows appended and the path (`~/loop-review-outputs/coolhand-skills.csv`)
 6. **Suggested follow-up**: If any `SKILL.md` or `references/*.md` changed, recommend running `bin/check-skill-urls` once before merging (not run automatically by this loop)
