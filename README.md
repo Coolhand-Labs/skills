@@ -37,7 +37,7 @@ If you don't have Node, use Claude Code's built-in marketplace:
 /plugin install coolhand@coolhand-labs
 ```
 
-All five skills become available globally across all your projects. You only invoke the planner directly (`/feedback-collection`); it dispatches to the implementation skills internally.
+All five skills become available globally across all your projects. The planner (`/feedback-collection`) is the main entry point and dispatches to the implementation skills internally. `/coolhand-setup` is an optional first step, and `/wildcard-tool` stands alone.
 
 ## Usage
 

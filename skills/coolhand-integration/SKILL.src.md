@@ -6,8 +6,9 @@ description: |
   feedback-collection planner skill at Phase 5 dispatch when the user picks
   "managed" / "Coolhand" / "default". Also use when the user directly says
   "set up Coolhand," "install the Coolhand SDK," or asks for a Coolhand API
-  key flow, types /coolhand-setup, or asks what they need (API keys,
-  database tables, endpoints, env vars) before anything is installed.
+  key flow. Also use when the user types /coolhand-setup, or asks what they
+  need (API keys, database tables, endpoints, env vars) before anything is
+  installed.
 version: 0.4.0
 shared_common: true
 ---
@@ -18,7 +19,7 @@ Install the Coolhand server SDK and (optionally) the coolhand-js widget against 
 
 This skill assumes:
 - The planner has already produced an approved feedback strategy (matching, signal, `creator_unique_id` rules).
-- `COOLHAND_API_KEY` is set in `.env*` (the planner's Phase 0 gate already enforced this).
+- `COOLHAND_API_KEY` is set in `.env*` (the planner's Phase 5 key check already verified or acquired it).
 
 If those assumptions don't hold, route the user back to the planner first.
 
@@ -45,11 +46,11 @@ A readiness check for people who ask what they need before Coolhand is installed
 
 ### S1 — Inspect the project (read-only)
 
-- **Env keys.** Look in `.env`, `.env.local`, `.env.development`, `.env.production`, and any other `.env*` files for these names: `COOLHAND_API_KEY`, `COOLHAND_PRIVATE_KEY`, `FEEDBACK_API_KEY`, `FEEDBACK_API_KEYS`, `FEEDBACK_BASE_URL`. Record which are present and in which file. **Never print, quote, or log a key's value.** Report names and files only.
+- **Env keys.** Look in `.env`, `.env.local`, `.env.development`, `.env.production`, and any other `.env*` files for these names: `COOLHAND_API_KEY`, `COOLHAND_PRIVATE_KEY`, `FEEDBACK_API_KEY`, `FEEDBACK_API_KEYS`, `FEEDBACK_BASE_URL`. Record which are present and in which file. **Never print, quote, or log a key's value, and do not read whole env files into context.** Match names only (for example `grep -lE "^(export )?COOLHAND_API_KEY=" .env* --exclude="*.example" --exclude="*.sample" --exclude="*.template"`), skipping template files because they usually hold placeholders, and report names and files only. (A shell "no matches found" error from the glob just means there are no env files.)
 - **CLI and account.** If `coolhand` is installed, run `coolhand status` to see whether the user is logged in (`coolhand help status` is the authoritative spec; `npx coolhand-cli@latest status` works as a one-shot). A failure is information, not an error: it means "not logged in."
-- **Existing integration.** Check the project against `existing_coolhand` in `../feedback-collection/detection-patterns/providers.yml`. If Coolhand is already wired in, say so, and tell the user the planner will pick up from what exists.
-- **Database and ORM.** Detect them the way `../self-hosted-feedback/SKILL.md` Phase B lists them. Record "none" if there is no database. This only matters for self-hosted.
-- **LLM usage.** Check for provider SDK imports using `sdk_imports` in `providers.yml`. A one-line result is enough; the planner does the real scan. If none are found, tell the user there is nothing for Coolhand to collect yet and ask whether to continue anyway.
+- **Existing integration.** Check the project against `server_sdk_interceptor` in `../feedback-collection/detection-patterns/providers.yml`, using the same rule as the planner's Phase 3 (Matching): a match in an initializer or boot file means the SDK is wired in; a match only in a comment, env file, or dependency manifest does not. A bare `existing_coolhand` hit (`CoolhandJS`, `COOLHAND_API_KEY`, or the unqualified string `coolhand`) is not enough to say "already wired in"; report it as "partial or unconfirmed." Either way, tell the user the planner will pick up from what exists.
+- **Database and ORM.** Detect them the way `../feedback-collection/SKILL.md` Phase 2 does (the Database/ORM bullet), and use `../self-hosted-feedback/SKILL.md` Phase B for which migration tool each maps to. Record "none" if there is no database. This only matters for self-hosted.
+- **LLM usage.** Check for provider SDK imports using `sdk_imports`, and for direct-HTTP callers using `http_inference_hosts`, in `providers.yml`. A one-line result is enough; the planner does the real scan. If neither turns up anything, tell the user there is nothing for Coolhand to collect yet and ask whether to continue anyway.
 
 ### S2 — Choose a path
 
@@ -84,19 +85,19 @@ Show a checklist for the chosen path. Mark each item **found**, **missing**, or 
 | Item | Created by |
 |---|---|
 | A database with migration tooling | The user (must already exist) |
-| `llm_request_logs` and `llm_request_log_feedbacks` tables | `self-hosted-feedback` (schema phase) |
-| `POST /api/v2/llm_request_logs`, `POST` and `PATCH /api/v2/llm_request_log_feedbacks` | `self-hosted-feedback` (endpoints phase) |
-| Auth middleware that accepts `FEEDBACK_API_KEYS` | `self-hosted-feedback` (auth phase) |
+| `llm_request_logs` and `llm_request_log_feedbacks` tables | `self-hosted-feedback` Phase C |
+| `POST /api/v2/llm_request_logs`, `POST` and `PATCH /api/v2/llm_request_log_feedbacks` | `self-hosted-feedback` Phase D |
+| Auth middleware that accepts `FEEDBACK_API_KEYS` | `self-hosted-feedback` Phase E |
 | `FEEDBACK_API_KEY` (SDK side) and `FEEDBACK_API_KEYS` (server side, comma-separated) | Setup mode, S4 |
 | `FEEDBACK_BASE_URL`: an https URL for your host that the SDK's runtime can reach | The user |
-| Coolhand SDK with `base_url` support | `self-hosted-feedback` |
+| Coolhand SDK with `base_url` support | `self-hosted-feedback` Phase F |
 | A separate public key for coolhand-js, only if the user approves a UI widget (it runs in the browser). `self-hosted-feedback` only shows a `YOUR_PUBLIC_FEEDBACK_KEY` placeholder, so the user decides how it is issued | The user |
 
 For self-hosted, read the "Important caveat" section of `../self-hosted-feedback/SKILL.md` and tell the user which SDKs have shipped `base_url` support and which upstream issues are still open. Do not describe SDK support from memory. For the exact table columns and endpoint shapes, point at `../self-hosted-feedback/references/api-spec.md` instead of restating them. For questions about what Coolhand records or how matching works, use the Help Center as described above rather than answering from memory.
 
 ### S4 — Acquire missing keys (with approval)
 
-For each missing key, ask the user before doing anything. Follow the key-acquisition step in `../feedback-collection/SKILL.md`, Phase 5 ("Verify the backend key before dispatching"), exactly: which env file to write, `coolhand login --write-env <path>` for managed, and a generated opaque secret in both `FEEDBACK_API_KEY` and `FEEDBACK_API_KEYS` for self-hosted. For `COOLHAND_PRIVATE_KEY`, follow F.1. Do not restate or reinvent those flows here; there is one spec for each.
+For each missing key the chosen path needs, ask the user before doing anything. Follow the key-acquisition step in `../feedback-collection/SKILL.md`, Phase 5 ("Verify the backend key before dispatching") for the chosen path, exactly as written there. Treat `COOLHAND_PRIVATE_KEY` as missing only if the user wants it; for it, follow F.1. Do not restate or reinvent those flows here; there is one spec for each.
 
 Skip this step if nothing is missing. Do not create tables, endpoints, or SDK configuration here.
 

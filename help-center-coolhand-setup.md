@@ -1,13 +1,13 @@
 ---
 title: "Set up Coolhand with the /coolhand-setup skill"
-answer: "Run /coolhand-setup in Claude Code before you install anything. It checks what your project already has, asks whether you want managed or self-hosted Coolhand, lists the API keys, database tables, endpoints and environment variables that path needs, and then hands you to /feedback-collection to do the actual integration."
+answer: "Run /coolhand-setup in your coding agent (these steps use Claude Code) before you install anything. It checks what your project already has, asks whether you want managed or self-hosted Coolhand, lists the API keys, database tables, endpoints and environment variables that path needs, and then hands you to /feedback-collection to do the actual integration."
 category: "Coding agents"
 tags: ["setup","skills","claude-code","api-keys","self-hosted"]
 ---
 
 # Set up Coolhand with the /coolhand-setup skill
 
-Run `/coolhand-setup` in Claude Code before you install anything. It checks what your project already has, asks whether you want managed or self-hosted Coolhand, lists the API keys, database tables, endpoints and environment variables that path needs, and then hands you to `/feedback-collection` to do the actual integration.
+Run `/coolhand-setup` in your coding agent (these steps use Claude Code) before you install anything. It checks what your project already has, asks whether you want managed or self-hosted Coolhand, lists the API keys, database tables, endpoints and environment variables that path needs, and then hands you to `/feedback-collection` to do the actual integration.
 
 ---
 
@@ -50,7 +50,7 @@ You can skip the question by passing the path: `/coolhand-setup managed` or `/co
 
 | Item | Notes |
 |---|---|
-| A Coolhand account and `COOLHAND_API_KEY` | The skill gets this for you with `coolhand login --write-env <file>`, which opens a browser to authorize. You choose which env file it writes to. |
+| A Coolhand account and `COOLHAND_API_KEY` | The skill gets this for you with `coolhand login --write-env <file>`, which opens a browser to authorize. You choose which env file it writes to. If you would rather not use the browser flow, get a key at coolhandlabs.com and add `COOLHAND_API_KEY=` to your env file yourself. |
 | `COOLHAND_PRIVATE_KEY` | Only if you want to read data back or use optimization commands. Server-side and CLI use only. Never put it in frontend code or commit it. |
 | The Coolhand server SDK | Installed later by the integration step, not by setup. |
 | The coolhand-js widget | Only if you approve adding a feedback widget to your UI. |
@@ -71,6 +71,7 @@ Self-hosted means you own the data and the analysis. You need:
 | `FEEDBACK_API_KEY` and `FEEDBACK_API_KEYS` | One opaque secret, set in both places: the SDK sends it, and the server must list it as accepted. `FEEDBACK_API_KEYS` is comma-separated so you can add more clients later. |
 | `FEEDBACK_BASE_URL` | The https URL of your host, reachable from wherever the SDK runs. You provide this. |
 | An SDK release with `base_url` support | Setup tells you which SDKs have shipped it and which are still pending. |
+| A separate public key for the coolhand-js widget | Only if you approve adding a feedback widget to your UI, since it runs in the browser. You decide how it is issued. |
 
 The exact table columns and endpoint shapes are in the self-hosted skill's API reference in the skills repository, so setup does not repeat them.
 
@@ -80,9 +81,9 @@ Moving from managed to self-hosted later means starting fresh: the v2 API does n
 
 ## Troubleshooting
 
-**`coolhand status` says I am not logged in.** That is expected on a new machine. Setup treats it as "no key yet" and offers the browser login.
+**`coolhand status` says I am not logged in.** That is expected on a new machine. Setup reports it as "not logged in" and, if `COOLHAND_API_KEY` is also missing from your env files, offers the browser login. A key already in your env file is still found and reported on its own.
 
-**Setup says there is nothing for Coolhand to collect.** It found no LLM provider SDK imports in the folder it checked. Run it from your project root, or continue anyway if your LLM calls are made over plain HTTP.
+**Setup says there is nothing for Coolhand to collect.** It found no LLM provider SDK imports or provider hostnames in the folder it checked. Run it from your project root, or continue anyway if your LLM calls are made some other way.
 
 **I picked self-hosted and it recommended managed.** Self-hosted needs somewhere to store data. Add a database, or start on managed and re-run `/coolhand-setup self-hosted` later.
 
