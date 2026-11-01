@@ -50,7 +50,7 @@ This file captures conventions Claude should follow when editing this repo.
 └── README.md
 ```
 
-**One plugin, four skills.** The repo is `Coolhand-Labs/skills` and the plugin (`coolhand`) is the general home for Coolhand skills; it currently ships four under `skills/`. The planner (`feedback-collection`) is the user-facing entry point and dispatches to either implementation skill (`coolhand-integration` or `self-hosted-feedback`) at its Phase 5. `wildcard-tool` is independently invocable and stands outside that dispatch trio — it consults on adding a "complaint box" tool to any agentic project, with no dependency on the planner having run. The two implementation skills are not independently useful in isolation from the planner — Install the plugin and all four load together.
+**One plugin, four skills.** The repo is `Coolhand-Labs/skills` and the plugin (`coolhand`) is the general home for Coolhand skills; it currently ships four under `skills/`. The planner (`feedback-collection`) is the user-facing entry point and dispatches to either implementation skill (`coolhand-integration` or `self-hosted-feedback`) at its Phase 5. `wildcard-tool` is independently invocable and stands outside that dispatch trio — it consults on adding a "complaint box" tool to any agentic project, with no dependency on the planner having run. The two implementation skills are not independently useful in isolation from the planner — install the plugin and all four load together.
 
 Each skill's frontmatter `name` must match its directory name under `skills/`. Out-of-sync names break skill discovery silently.
 
