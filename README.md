@@ -1,6 +1,6 @@
-# Coolhand Feedback Collection Skill
+# Coolhand Skills
 
-A Claude Code plugin that finds AI/LLM workflows in your codebase and implements best-practice human feedback collection — either against the [managed Coolhand backend](https://coolhandlabs.com) or scaffolded onto your own servers.
+Skills for AI/LLM product teams from [Coolhand](https://coolhandlabs.com), shipped as one Claude Code plugin. The flagship, `feedback-collection`, finds AI/LLM workflows in your codebase and implements best-practice human feedback collection — either against the [managed Coolhand backend](https://coolhandlabs.com) or scaffolded onto your own servers.
 
 ## What it does
 
@@ -23,7 +23,7 @@ It uses the latest SDK documentation from GitHub each time it runs, so recommend
 ## Installation
 
 ```sh
-skills add Coolhand-Labs/feedback-collection-skill -g
+skills add Coolhand-Labs/skills -g
 ```
 
 Don't have `skills`? Install it first: `npm install -g skills`
@@ -31,8 +31,8 @@ Don't have `skills`? Install it first: `npm install -g skills`
 If you don't have Node, use Claude Code's built-in marketplace:
 
 ```
-/plugin marketplace add Coolhand-Labs/feedback-collection-skill
-/plugin install feedback-collection@coolhand
+/plugin marketplace add Coolhand-Labs/skills
+/plugin install coolhand@coolhand-labs
 ```
 
 All four skills become available globally across all your projects. You only invoke the planner directly (`/feedback-collection`); it dispatches to the implementation skills internally.
@@ -98,7 +98,7 @@ This plugin is open source. You can read exactly what instructions Claude receiv
 
 ## Issues and feedback
 
-Found a bug or have a suggestion for this skill? [Open an issue](https://github.com/Coolhand-Labs/feedback-collection-skill/issues/new).
+Found a bug or have a suggestion for this skill? [Open an issue](https://github.com/Coolhand-Labs/skills/issues/new).
 
 If the skill surfaces a problem with one of the Coolhand SDKs, it will offer to help you draft a sanitized issue report for the appropriate repository.
 

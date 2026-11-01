@@ -75,7 +75,7 @@ Update an existing feedback entry.
 
 ### `GET /api/v2/inference_apis` *(deferred for v0.1)*
 
-Pricing metadata for LLM providers. Out of scope for self-hosted v0.1; see [issue #2](https://github.com/Coolhand-Labs/feedback-collection-skill/issues/2). Self-hosted users who need pricing data can call the upstream Coolhand version of this endpoint directly (it does not require auth).
+Pricing metadata for LLM providers. Out of scope for self-hosted v0.1; see [issue #2](https://github.com/Coolhand-Labs/skills/issues/2). Self-hosted users who need pricing data can call the upstream Coolhand version of this endpoint directly (it does not require auth).
 
 ## Auth (3 mechanisms)
 
