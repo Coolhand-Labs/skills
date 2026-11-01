@@ -6,8 +6,9 @@ description: |
   feedback-collection planner skill at Phase 5 dispatch when the user picks
   "managed" / "Coolhand" / "default". Also use when the user directly says
   "set up Coolhand," "install the Coolhand SDK," or asks for a Coolhand API
-  key flow.
-version: 0.3.4
+  key flow, types /coolhand-setup, or asks what they need (API keys,
+  database tables, endpoints, env vars) before anything is installed.
+version: 0.4.0
 shared_common: true
 ---
 
@@ -21,6 +22,8 @@ This skill assumes:
 
 If those assumptions don't hold, route the user back to the planner first.
 
+**Exception: Setup mode.** When invoked as `/coolhand-setup`, or when the user asks what they need before anything is installed, run "Setup mode" below instead of routing to the planner, then hand off to it. The `coolhand-setup` skill is a thin alias for this section.
+
 ## Rationalizations to resist
 
 These three guardrails bite hardest at implementation time. The full discussion lives in the planner; recap here so they're present at the moment of temptation:
@@ -33,6 +36,75 @@ These three guardrails bite hardest at implementation time. The full discussion 
 | "`get-optimization` failed but I have the title and thesis from `search-optimizations` — I can reconstruct the analysis." | Stop. Report the exact error. `search-optimizations` intentionally omits `analysis`, `plan`, and `orchestrator_messages`. Synthesizing those fields from a title or thesis is fabrication, not summarization. |
 
 If you find yourself constructing a fourth rationalization, surface it to the user instead of acting on it.
+
+## Setup mode (`/coolhand-setup`)
+
+A readiness check for people who ask what they need before Coolhand is installed. It inspects the project, explains what the chosen path (managed or self-hosted) requires, reports what exists and what is missing, and hands off to the `feedback-collection` planner. It is read-only by default. It does not scan for LLM workflows or design a feedback strategy (the planner does that), and it does not install SDKs, write migrations, or write endpoints (Phases A–G below and `self-hosted-feedback` do that). The only project change it can make is acquiring a missing API key, and only after the user approves.
+
+`$ARGUMENTS` may contain `managed` or `self-hosted` to skip S2. Anything else is ignored.
+
+### S1 — Inspect the project (read-only)
+
+- **Env keys.** Look in `.env`, `.env.local`, `.env.development`, `.env.production`, and any other `.env*` files for these names: `COOLHAND_API_KEY`, `COOLHAND_PRIVATE_KEY`, `FEEDBACK_API_KEY`, `FEEDBACK_API_KEYS`, `FEEDBACK_BASE_URL`. Record which are present and in which file. **Never print, quote, or log a key's value.** Report names and files only.
+- **CLI and account.** If `coolhand` is installed, run `coolhand status` to see whether the user is logged in (`coolhand help status` is the authoritative spec; `npx coolhand-cli@latest status` works as a one-shot). A failure is information, not an error: it means "not logged in."
+- **Existing integration.** Check the project against `existing_coolhand` in `../feedback-collection/detection-patterns/providers.yml`. If Coolhand is already wired in, say so, and tell the user the planner will pick up from what exists.
+- **Database and ORM.** Detect them the way `../self-hosted-feedback/SKILL.md` Phase B lists them. Record "none" if there is no database. This only matters for self-hosted.
+- **LLM usage.** Check for provider SDK imports using `sdk_imports` in `providers.yml`. A one-line result is enough; the planner does the real scan. If none are found, tell the user there is nothing for Coolhand to collect yet and ask whether to continue anyway.
+
+### S2 — Choose a path
+
+If the user did not pass an argument, ask:
+
+> "Two ways to run Coolhand:
+>
+> **Managed**: Coolhand receives the logs and feedback at coolhandlabs.com. Nothing to create in your database. Includes the analytics dashboard. Recommended unless you have privacy, compliance, or data-residency requirements.
+>
+> **Self-hosted**: your own backend receives them. You create two tables, three endpoints, and auth in your own project, and you own the data and the analysis. Requires a database in this project (I see [detected DB or 'none']).
+>
+> Which one?"
+
+If S1 found no database and the user picks self-hosted, push back: self-hosted has nowhere to store the data, so recommend managed for now. The v2 API does not yet expose export endpoints, so moving from managed to self-hosted later means starting fresh with no historical data. Say that plainly and let the user decide.
+
+### S3 — Readiness report
+
+Show a checklist for the chosen path. Mark each item **found**, **missing**, or **not needed**, and name what creates it. Use the S1 results; do not guess.
+
+**Managed**
+
+| Item | Created by |
+|---|---|
+| Coolhand account and `COOLHAND_API_KEY` in an `.env*` file | Setup mode, S4 (browser login) |
+| `COOLHAND_PRIVATE_KEY`, only if the user wants to read data back or use optimization commands. Server-side and CLI use only, never frontend code | Setup mode, S4 (Phase F.1) |
+| Coolhand server SDK for the project's language, installed and configured | Phases B–C, after the planner |
+| coolhand-js widget, only if the user approves a UI change | Phase E, after the planner |
+| Anything in your database | **Not needed** |
+
+**Self-hosted**
+
+| Item | Created by |
+|---|---|
+| A database with migration tooling | The user (must already exist) |
+| `llm_request_logs` and `llm_request_log_feedbacks` tables | `self-hosted-feedback` (schema phase) |
+| `POST /api/v2/llm_request_logs`, `POST` and `PATCH /api/v2/llm_request_log_feedbacks` | `self-hosted-feedback` (endpoints phase) |
+| Auth middleware that accepts `FEEDBACK_API_KEYS` | `self-hosted-feedback` (auth phase) |
+| `FEEDBACK_API_KEY` (SDK side) and `FEEDBACK_API_KEYS` (server side, comma-separated) | Setup mode, S4 |
+| `FEEDBACK_BASE_URL`: an https URL for your host that the SDK's runtime can reach | The user |
+| Coolhand SDK with `base_url` support | `self-hosted-feedback` |
+| A separate public key for coolhand-js, only if the user approves a UI widget (it runs in the browser). `self-hosted-feedback` only shows a `YOUR_PUBLIC_FEEDBACK_KEY` placeholder, so the user decides how it is issued | The user |
+
+For self-hosted, read the "Important caveat" section of `../self-hosted-feedback/SKILL.md` and tell the user which SDKs have shipped `base_url` support and which upstream issues are still open. Do not describe SDK support from memory. For the exact table columns and endpoint shapes, point at `../self-hosted-feedback/references/api-spec.md` instead of restating them. For questions about what Coolhand records or how matching works, use the Help Center as described above rather than answering from memory.
+
+### S4 — Acquire missing keys (with approval)
+
+For each missing key, ask the user before doing anything. Follow the key-acquisition step in `../feedback-collection/SKILL.md`, Phase 5 ("Verify the backend key before dispatching"), exactly: which env file to write, `coolhand login --write-env <path>` for managed, and a generated opaque secret in both `FEEDBACK_API_KEY` and `FEEDBACK_API_KEYS` for self-hosted. For `COOLHAND_PRIVATE_KEY`, follow F.1. Do not restate or reinvent those flows here; there is one spec for each.
+
+Skip this step if nothing is missing. Do not create tables, endpoints, or SDK configuration here.
+
+### S5 — Hand off
+
+Summarize in a few lines: the path chosen, what is ready, what the user still has to provide themselves (database, `FEEDBACK_BASE_URL`), and what the implementation will create. Then tell the user to run `/feedback-collection`. The planner scans for LLM workflows, designs the feedback strategy, gets approval for a plan, and dispatches to this skill or to `self-hosted-feedback`. Mention the path chosen here so the user can pick it again at the planner's dispatch step without re-deciding.
+
+Do not run Phases A–G or invoke `self-hosted-feedback` from Setup mode; both need an approved strategy from the planner.
 
 ## Phase A: Fetch current SDK READMEs
 
