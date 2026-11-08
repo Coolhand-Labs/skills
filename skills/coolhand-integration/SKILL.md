@@ -7,9 +7,9 @@ description: |
   "managed" / "Coolhand" / "default". Also use when the user directly says
   "set up Coolhand," "install the Coolhand SDK," or asks for a Coolhand API
   key flow. Also use when the user types /coolhand-setup, or asks what they
-  need (API keys, database tables, endpoints, env vars) before anything is
-  installed.
-version: 0.4.0
+  need (API keys, database tables, endpoints, env vars, or capture of their
+  local Claude Code and Copilot skills) before anything is installed.
+version: 0.5.0
 shared_common: true
 ---
 
@@ -80,7 +80,7 @@ This skill assumes:
 
 If those assumptions don't hold, route the user back to the planner first.
 
-**Exception: Setup mode.** When invoked as `/coolhand-setup`, or when the user asks what they need before anything is installed, run "Setup mode" below instead of routing to the planner, then hand off to it. The `coolhand-setup` skill is a thin alias for this section.
+**Exception: Setup mode.** When invoked as `/coolhand-setup`, or when the user asks what they need before anything is installed, run "Setup mode" below instead of routing to the planner, then hand off to the planner (production AI) or to `coolhand-capture` (local skills and sessions). The `coolhand-setup` skill is a thin alias for this section.
 
 ## Rationalizations to resist
 
@@ -97,11 +97,29 @@ If you find yourself constructing a fourth rationalization, surface it to the us
 
 ## Setup mode (`/coolhand-setup`)
 
-A readiness check for people who ask what they need before Coolhand is installed. It inspects the project, explains what the chosen path (managed or self-hosted) requires, reports what exists and what is missing, and hands off to the `feedback-collection` planner. It is read-only by default. It does not scan for LLM workflows or design a feedback strategy (the planner does that), and it does not install SDKs, write migrations, or write endpoints (Phases A–G below and `self-hosted-feedback` do that). The only project change it can make is acquiring a missing API key, and only after the user approves.
+The front door for people who ask what they need before Coolhand is installed. It first asks what they are setting up: Coolhand on a production AI application, on their own local skills and sessions, or both. The local-skills path hands off to the `coolhand-capture` skill. The production path is a readiness check: it inspects the project, explains what the chosen path (managed or self-hosted) requires, reports what exists and what is missing, and hands off to the `feedback-collection` planner. It is read-only by default. It does not scan for LLM workflows or design a feedback strategy (the planner does that), and it does not install SDKs, write migrations, or write endpoints (Phases A–G below and `self-hosted-feedback` do that). The only project change it can make is acquiring a missing API key, and only after the user approves.
 
-`$ARGUMENTS` may contain `managed` or `self-hosted` to skip S2. Anything else is ignored.
+`$ARGUMENTS` may contain `managed` or `self-hosted` (production AI, and skips S2) or `skills` (local skills and sessions). Anything else is ignored.
+
+### S0 — What are you setting up?
+
+If `$ARGUMENTS` did not already answer it, ask:
+
+> "Coolhand can be set up in two places:
+>
+> **Production AI**: your application calls an LLM and you want Coolhand to capture those calls and collect feedback on the outputs (the SDK, API keys, and optionally a widget).
+>
+> **Local skills and sessions**: you and your team use Claude Code or GitHub Copilot, and you want Coolhand to capture the runs of your skills, upload past Claude Code sessions, or run a skill on a schedule.
+>
+> Which one, or both?"
+
+- **Production AI**: continue with S1.
+- **Local skills and sessions**: do not run S1–S5. Invoke the `coolhand-capture` skill and follow it, passing along nothing else, then stop.
+- **Both**: do S1–S5 for production first, and at S5 offer `/coolhand-capture` for the local half.
 
 ### S1 — Inspect the project (read-only)
+
+Only for the production AI path.
 
 - **Env keys.** Look in `.env`, `.env.local`, `.env.development`, `.env.production`, and any other `.env*` files for these names: `COOLHAND_API_KEY`, `COOLHAND_PRIVATE_KEY`, `FEEDBACK_API_KEY`, `FEEDBACK_API_KEYS`, `FEEDBACK_BASE_URL`. Record which are present and in which file. **Never print, quote, or log a key's value, and do not read whole env files into context.** Match names only (for example `grep -lE "^(export )?COOLHAND_API_KEY=" .env* --exclude="*.example" --exclude="*.sample" --exclude="*.template"`), skipping template files because they usually hold placeholders, and report names and files only. (A shell "no matches found" error from the glob just means there are no env files.)
 - **CLI and account.** If `coolhand` is installed, run `coolhand status` to see whether the user is logged in (`coolhand help status` is the authoritative spec; `npx coolhand-cli@latest status` works as a one-shot). A failure is information, not an error: it means "not logged in."
@@ -160,7 +178,7 @@ Skip this step if nothing is missing. Do not create tables, endpoints, or SDK co
 
 ### S5 — Hand off
 
-Summarize in a few lines: the path chosen, what is ready, what the user still has to provide themselves (database, `FEEDBACK_BASE_URL`), and what the implementation will create. Then tell the user to run `/feedback-collection`. The planner scans for LLM workflows, designs the feedback strategy, gets approval for a plan, and dispatches to this skill or to `self-hosted-feedback`. Mention the path chosen here so the user can pick it again at the planner's dispatch step without re-deciding.
+Summarize in a few lines: the path chosen, what is ready, what the user still has to provide themselves (database, `FEEDBACK_BASE_URL`), and what the implementation will create. Then tell the user to run `/feedback-collection`. If they chose both in S0, also tell them to run `/coolhand-capture` for the local skills and sessions half. The planner scans for LLM workflows, designs the feedback strategy, gets approval for a plan, and dispatches to this skill or to `self-hosted-feedback`. Mention the path chosen here so the user can pick it again at the planner's dispatch step without re-deciding.
 
 Do not run Phases A–G or invoke `self-hosted-feedback` from Setup mode; both need an approved strategy from the planner.
 

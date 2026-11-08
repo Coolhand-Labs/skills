@@ -1,6 +1,6 @@
 {
   "name": "coolhand",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Coolhand skills for AI/LLM product teams: human feedback collection, self-hosted feedback backends, and agent-side wildcard tools",
   "author": {
     "name": "Coolhand Labs",
@@ -25,6 +25,7 @@
     "./skills/coolhand-integration",
     "./skills/self-hosted-feedback",
     "./skills/wildcard-tool",
-    "./skills/coolhand-setup"
+    "./skills/coolhand-setup",
+    "./skills/coolhand-capture"
   ]
 }
