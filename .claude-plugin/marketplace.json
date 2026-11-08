@@ -9,7 +9,7 @@
     {
       "name": "coolhand",
       "description": "Coolhand skills for AI/LLM product teams: human feedback collection, self-hosted feedback backends, and agent-side wildcard tools",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "source": "./",
       "author": {
         "name": "Coolhand Labs",
