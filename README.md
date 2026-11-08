@@ -14,11 +14,13 @@ Run `/feedback-collection` in any project and the planner skill will:
    - `coolhand-integration` — installs the Coolhand SDKs against `coolhandlabs.com` (default; fastest setup; includes the analytics dashboard)
    - `self-hosted-feedback` — scaffolds Coolhand-compatible endpoints on your own backend (for privacy/compliance/data-residency requirements)
 
-`/coolhand-setup` (`/coolhand:coolhand-setup` in the plugin) is the setup walkthrough. Run it first if you are not sure what you need: it checks what your project already has, explains what managed or self-hosted Coolhand requires (API keys, database tables, endpoints, env vars), and hands off to `/feedback-collection`. It is a thin alias for the Setup mode in `coolhand-integration`.
+`/coolhand-setup` (`/coolhand:coolhand-setup` in the plugin) is the setup walkthrough. Run it first if you are not sure what you need: it asks whether you are setting up Coolhand on a production AI application, on your own local Claude Code and Copilot skills, or both. For production it checks what your project already has, explains what managed or self-hosted Coolhand requires (API keys, database tables, endpoints, env vars), and hands off to `/feedback-collection`. For local skills it hands off to `/coolhand-capture`. It is a thin alias for the Setup mode in `coolhand-integration`.
+
+`/coolhand-capture` (`/coolhand:coolhand-capture` in the plugin) walks you through capturing your own Claude Code and GitHub Copilot work with the `coolhand` CLI: skill runs as they happen (hooks), past Claude Code sessions on your machine, your local skills, and scheduled skill runs. It does not assume you have a skills repo; it looks, asks, sets up a public API key or a login, and tests that it works.
 
 `/wildcard-tool` is also available as a standalone skill: skill consults on adding a wildcard "complaint box" tool to any agentic project so silent agent failures become visible. See [Your AI Agent Has Notes](https://michael.carroll.io/talks/2026/your-ai-agent-has-notes) for the background on why this matters and how to act on what the tool surfaces.
 
-The plugin is one install — all five skills load together.
+The plugin is one install — all six skills load together.
 
 It uses the latest SDK documentation from GitHub each time it runs, so recommendations stay current.
 
@@ -37,7 +39,7 @@ If you don't have Node, use Claude Code's built-in marketplace:
 /plugin install coolhand@coolhand-labs
 ```
 
-All five skills become available globally across all your projects. The planner (`/feedback-collection`) is the main entry point and dispatches to the implementation skills internally. `/coolhand-setup` is an optional first step, and `/wildcard-tool` stands alone.
+All six skills become available globally across all your projects. The planner (`/feedback-collection`) is the main entry point and dispatches to the implementation skills internally. `/coolhand-setup` is an optional first step, and `/coolhand-capture` and `/wildcard-tool` stand alone.
 
 ## Usage
 
@@ -97,6 +99,7 @@ This plugin is open source. You can read exactly what instructions Claude receiv
 - Managed-Coolhand integration and setup walkthrough: [`skills/coolhand-integration/SKILL.md`](skills/coolhand-integration/SKILL.md) (`/coolhand-setup` is an alias: [`skills/coolhand-setup/SKILL.md`](skills/coolhand-setup/SKILL.md))
 - Self-hosted: [`skills/self-hosted-feedback/SKILL.md`](skills/self-hosted-feedback/SKILL.md) (with a Coolhand v2 API reference at [`skills/self-hosted-feedback/references/api-spec.md`](skills/self-hosted-feedback/references/api-spec.md))
 - Wildcard-tool consultant: [`skills/wildcard-tool/SKILL.md`](skills/wildcard-tool/SKILL.md)
+- Local skills and sessions capture walkthrough: [`skills/coolhand-capture/SKILL.md`](skills/coolhand-capture/SKILL.md)
 
 ## Issues and feedback
 

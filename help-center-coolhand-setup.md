@@ -34,7 +34,9 @@ Repository: https://github.com/Coolhand-Labs/skills
 
 ## What /coolhand-setup does
 
-It is a readiness check. It does not install SDKs, write database migrations or create endpoints. The only change it can make to your project is adding an API key to an env file, and it asks you first.
+Before anything else it asks what you are setting up: Coolhand on a production AI application, on your own local Claude Code and GitHub Copilot skills and sessions, or both. The local-skills path hands you to `/coolhand-capture`, which walks through capturing skill runs, uploading past Claude Code sessions, and testing that it works. The rest of this article is the production AI path.
+
+The production path is a readiness check. It does not install SDKs, write database migrations or create endpoints. The only change it can make to your project is adding an API key to an env file, and it asks you first.
 
 1. **Inspects your project.** It looks for Coolhand environment variable names in your `.env*` files (it reports names and file paths, never values), checks whether you are logged in with `coolhand status`, looks for an existing Coolhand integration, detects your database and ORM, and notes which LLM provider SDKs you use.
 2. **Asks which path you want.** Managed sends your logs and feedback to coolhandlabs.com. Self-hosted sends them to endpoints on your own backend.
